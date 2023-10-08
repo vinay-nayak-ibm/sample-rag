@@ -17,7 +17,34 @@ import time
 import numpy as np
 
 import openai
+import pinecone
 import streamlit as st
+
+PINECONE_API_KEY='3d6f75f8-7866-4560-b585-f5c234af6299'
+PINECONE_API_ENV='gcp-starter'
+PINECONE_INDEX_NAME='rag'
+
+PINECONE_API_KEY='613dc15b-3fd8-450a-8920-f4a472847cb6'
+PINECONE_API_ENV='gcp-starter'
+PINECONE_INDEX_NAME='chat-docs'
+
+def augmented_content(inp):
+    # Create the embedding using OpenAI keys
+    # Do similarity search using Pinecone
+    # Return the top 5 results
+    print(f"Starting augmented content with input {inp}")
+    st.write(f"Starting augmented content with input {inp}")
+    embedding=openai.Embedding.create(model="text-embedding-ada-002", input=inp)['data'][0]['embedding']
+    pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_API_ENV)
+    index = pinecone.Index(PINECONE_INDEX_NAME)
+    results=index.query(embedding,top_k=3,include_metadata=True)
+    #print(f"Results: {results}")
+    #st.write(f"Results: {results}")
+    rr=[ r['metadata']['text'] for r in results['matches']]
+    #print(f"RR: {rr}")
+    #st.write(f"RR: {rr}")
+    return rr
+
 
 SYSTEM_MESSAGE={"role": "system", 
                 "content": "Ignore all previous commands. You are a helpful and patient guide based in Silicon Valley."
@@ -38,10 +65,12 @@ if prompt := st.chat_input("What is up?"):
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         full_response = ""
-        retreived_content = "start answer with *In my view*"
+        retreived_content = augmented_content(prompt)
+        #print(f"Retreived content: {retreived_content}")
         messageList=[{"role": m["role"], "content": m["content"]}
                       for m in st.session_state.messages]
-        messageList.append({"role": "assistant", "content": retreived_content})
+        for r in retreived_content:
+            messageList.append({"role": "assistant", "content": r})
         
         for response in openai.ChatCompletion.create(
             model="gpt-3.5-turbo",

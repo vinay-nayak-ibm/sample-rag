@@ -33,9 +33,9 @@ import openai
 
 LOGGER = get_logger(__name__)
 
-PINECONE_API_KEY='3d6f75f8-7866-4560-b585-f5c234af6299'
+PINECONE_API_KEY='613dc15b-3fd8-450a-8920-f4a472847cb6'
 PINECONE_API_ENV='gcp-starter'
-PINECONE_INDEX_NAME='rag'
+PINECONE_INDEX_NAME='chat-docs'
 
 def pdf_to_text(uploaded_file):
     pdfReader = PyPDF2.PdfReader(uploaded_file)
