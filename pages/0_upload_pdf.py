@@ -33,9 +33,9 @@ import openai
 
 LOGGER = get_logger(__name__)
 
-PINECONE_API_KEY='613dc15b-3fd8-450a-8920-f4a472847cb6'
-PINECONE_API_ENV='gcp-starter'
-PINECONE_INDEX_NAME='chat-docs'
+PINECONE_API_KEY=os.environ['PINECONE_API_KEY']
+PINECONE_API_ENV=os.environ['PINECONE_API_ENV']
+PINECONE_INDEX_NAME=os.environ['PINECONE_INDEX_NAME']
 
 def pdf_to_text(uploaded_file):
     pdfReader = PyPDF2.PdfReader(uploaded_file)
@@ -67,7 +67,8 @@ def run():
 # Accept a PDF file using Streamlit
 # Upload to Pinecone
 #
-uploaded_file=st.file_uploader("Choose PDF file",type="pdf")
+st.markdown("# Upload file: PDF")
+uploaded_file=st.file_uploader("Upload PDF file",type="pdf")
 if uploaded_file is not None:
     if st.button('Process and Upload'):
         pdf_text = pdf_to_text(uploaded_file)

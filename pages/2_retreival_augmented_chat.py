@@ -19,21 +19,16 @@ import numpy as np
 import openai
 import pinecone
 import streamlit as st
+import os
 
-PINECONE_API_KEY='3d6f75f8-7866-4560-b585-f5c234af6299'
-PINECONE_API_ENV='gcp-starter'
-PINECONE_INDEX_NAME='rag'
-
-PINECONE_API_KEY='613dc15b-3fd8-450a-8920-f4a472847cb6'
-PINECONE_API_ENV='gcp-starter'
-PINECONE_INDEX_NAME='chat-docs'
+PINECONE_API_KEY=os.environ['PINECONE_API_KEY']
+PINECONE_API_ENV=os.environ['PINECONE_API_ENV']
+PINECONE_INDEX_NAME=os.environ['PINECONE_INDEX_NAME']
 
 def augmented_content(inp):
     # Create the embedding using OpenAI keys
     # Do similarity search using Pinecone
     # Return the top 5 results
-    print(f"Starting augmented content with input {inp}")
-    st.write(f"Starting augmented content with input {inp}")
     embedding=openai.Embedding.create(model="text-embedding-ada-002", input=inp)['data'][0]['embedding']
     pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_API_ENV)
     index = pinecone.Index(PINECONE_INDEX_NAME)
@@ -55,22 +50,28 @@ if "messages" not in st.session_state:
     st.session_state.messages.append(SYSTEM_MESSAGE)
 
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+    if message["role"] != "system":
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
 if prompt := st.chat_input("What is up?"):
+    retreived_content = augmented_content(prompt)
+    #print(f"Retreived content: {retreived_content}")
+    prompt_guidance=f"""
+Please guide the user with the following information:
+{retreived_content}
+The user's question was: {prompt}
+    """
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         full_response = ""
-        retreived_content = augmented_content(prompt)
-        #print(f"Retreived content: {retreived_content}")
+        
         messageList=[{"role": m["role"], "content": m["content"]}
                       for m in st.session_state.messages]
-        for r in retreived_content:
-            messageList.append({"role": "assistant", "content": r})
+        messageList.append({"role": "user", "content": prompt_guidance})
         
         for response in openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -78,5 +79,6 @@ if prompt := st.chat_input("What is up?"):
             full_response += response.choices[0].delta.get("content", "")
             message_placeholder.markdown(full_response + "▌")
         message_placeholder.markdown(full_response)
-    st.write(f"Saw response:\n{full_response} for full request:\n {messageList}\n*****\n")
+    with st.sidebar.expander("Retreival context provided to GPT-3"):
+        st.write(f"{retreived_content}")
     st.session_state.messages.append({"role": "assistant", "content": full_response})
