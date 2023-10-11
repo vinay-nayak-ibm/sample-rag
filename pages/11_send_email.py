@@ -5,7 +5,7 @@ import streamlit as st
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
-def send_email(to_emails = 'testEmail@gprof.com',
+def send_email_test(to_emails = 'testEmail@gprof.com',
                subject='Test Email: Please respond',
                message = '<strong>This should work</strong> even without Bolding'):
   message = Mail(
@@ -24,4 +24,4 @@ def send_email(to_emails = 'testEmail@gprof.com',
       print(e.message)
       print("Did not succeed")
 if st.button('send email'):
-   send_email()
+   send_email_test()
