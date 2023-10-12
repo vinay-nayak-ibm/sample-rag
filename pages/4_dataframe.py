@@ -5,6 +5,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
 import os
+import markdown
 
 def _max_width_():
     max_width_str = "max-width: 1000px;"
@@ -65,13 +66,23 @@ def send_email(to_emails = 'testEmail@gprof.com',
 def get_conversation_summary(p):
     formatted_messages = [f"## {m['role']}:\n### {m['content']}\n\n" for m in st.session_state.messages]
     formatted_string="\n**********\n".join(formatted_messages)
+    print(f"Formatted string is {formatted_string}")
     summary=f"""
-    # Conversation summary
-    Hi {p}
-    The student has requested your assistance. Here is the conversation log: 
-    {formatted_string}
+### Hi {p} 
+
+The student has requested your assistance. Can you please reach out to them asap? 
+    
+thanks
+    
+-Counsel
+    
+Here is the conversation log: 
+{formatted_string}
     """
-    return summary
+    print(f"Summary is {summary}")
+    html_summary=markdown.markdown(summary)
+    print(f"HTML summary is {html_summary}")
+    return html_summary
 
 csv_file='https://docs.google.com/spreadsheets/d/e/2PACX-1vT95ra61mikEmqFkP44oq2VotHf5CW5NNQTYZ4Q-DZa3CvFAk_GrdBePrxEaL17WHsCsw7mjKiI_Ufo/pub?gid=0&single=true&output=csv'
 df=pd.read_csv(csv_file)
@@ -94,24 +105,10 @@ for i in range(len(df)):
         if col2.button("Send Conversation",key=f'button{i}'):
             g=get_conversation_summary(p)
             send_email(em,'Assistance requested: With conversation log',g)
-            with st.sidebar.expander("Email message sent to {p}"):
+            with st.sidebar.expander(f"Email message sent to {p}"):
                 st.markdown(f"To: {em}.\n Body: {g}")
             st.write(f"Conversation sent to {p} at {em}")
         st.divider()
         print(row)
 
-
-
-
-#df['C4'] = df['C4'].apply(lambda x: f'<img src="{x}" width="100"/>')
-
-#styled_df = df.style.set_table_styles([
-#    {"selector": "thead th", "props": [("font-size", "150%"), ("text-align", "center")]},
-#    {"selector": "tbody td", "props": [("font-size", "120%"), ("text-align", "center")]}
-#])
-
-#html_output = df.to_html(index=False,escape=False)
-
-# Display styled DataFrame in Streamlit
-#st.write(html_output, unsafe_allow_html=True)
 

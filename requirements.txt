@@ -8,3 +8,6 @@ pinecone-client
 langchain
 openai
 sendgrid
+markdown
+markdown
+mistune
