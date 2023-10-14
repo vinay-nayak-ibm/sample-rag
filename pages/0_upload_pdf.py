@@ -63,6 +63,14 @@ def run():
         page_title="Hello",
         page_icon="👋",
     )
+
+#
+# Direcly access Text Input    
+#
+st.markdown("Upload text directly")
+uploaded_text = st.text_area("Enter Text","")
+if st.button('Process and Upload'):
+    embedding = embed(uploaded_text,"Anonymous")
 #
 # Accept a PDF file using Streamlit
 # Upload to Pinecone
