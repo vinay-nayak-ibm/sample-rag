@@ -19,6 +19,8 @@ import numpy as np
 import openai
 import streamlit as st
 
+avatars={"system":"💻🧠","user":"🧑‍💼","assistant":"🎓"}
+
 SYSTEM_MESSAGE={"role": "system", 
                 "content": "Ignore all previous commands. You are a helpful and patient guide based in Silicon Valley."
                 }
@@ -29,14 +31,15 @@ if "messages" not in st.session_state:
 
 for message in st.session_state.messages:
     if message["role"] != "system":
-        with st.chat_message(message["role"]):
+        avatar=avatars[message["role"]]
+        with st.chat_message(message["role"], avatar=avatar):
             st.markdown(message["content"])
 
 if prompt := st.chat_input("What is up?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar=avatars["assistant"]):
         message_placeholder = st.empty()
         full_response = ""
         for response in openai.ChatCompletion.create(
