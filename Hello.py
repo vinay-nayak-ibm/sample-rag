@@ -13,6 +13,23 @@
 # limitations under the License.
 
 import streamlit as st
+
+def add_bg_from_url():
+    st.markdown(
+         f"""
+         <style>
+         .stApp {{
+             background-image: url("https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Jasminum_officinale_-_Bot._Mag._31%2C_1787.jpg/220px-Jasminum_officinale_-_Bot._Mag._31%2C_1787.jpg");
+             background-attachment: fixed;
+             background-size: cover;
+             opacity: 0.9;
+         }}
+         </style>
+         """,
+         unsafe_allow_html=True
+     )
+
+add_bg_from_url() 
   
 st.markdown("# HELLO WORLD")
 
