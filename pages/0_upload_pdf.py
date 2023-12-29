@@ -29,13 +29,15 @@ import pinecone
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import PyPDFLoader
 import hashlib
-import openai
+from openai import OpenAI
 
 LOGGER = get_logger(__name__)
 
 PINECONE_API_KEY=os.environ['PINECONE_API_KEY']
 PINECONE_API_ENV=os.environ['PINECONE_API_ENV']
 PINECONE_INDEX_NAME=os.environ['PINECONE_INDEX_NAME']
+
+client=OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 
 def pdf_to_text(uploaded_file):
     pdfReader = PyPDF2.PdfReader(uploaded_file)
@@ -53,7 +55,7 @@ def embed(text,filename):
     docs=text_splitter.create_documents([text])
     for idx,d in enumerate(docs):
         hash=hashlib.md5(d.page_content.encode('utf-8')).hexdigest()
-        embedding=openai.Embedding.create(model="text-embedding-ada-002", input=d.page_content)['data'][0]['embedding']
+        embedding=client.embeddings.create(model="text-embedding-ada-002", input=d.page_content).data[0].embedding
         metadata={"hash":hash,"text":d.page_content,"index":idx,"model":"text-embedding-ada-003","docname":filename}
         index.upsert([(hash,embedding,metadata)])
     return
@@ -69,7 +71,7 @@ def run():
 #
 st.markdown("Upload text directly")
 uploaded_text = st.text_area("Enter Text","")
-if st.button('Process and Upload'):
+if st.button('Process and Upload Text'):
     embedding = embed(uploaded_text,"Anonymous")
 #
 # Accept a PDF file using Streamlit
@@ -78,7 +80,7 @@ if st.button('Process and Upload'):
 st.markdown("# Upload file: PDF")
 uploaded_file=st.file_uploader("Upload PDF file",type="pdf")
 if uploaded_file is not None:
-    if st.button('Process and Upload'):
+    if st.button('Process and Upload File'):
         pdf_text = pdf_to_text(uploaded_file)
         embedding = embed(pdf_text,uploaded_file.name)
     st.write("# Welcome to Streamlit! 👋")

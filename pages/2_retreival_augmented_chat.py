@@ -16,7 +16,7 @@ import time
 
 import numpy as np
 
-import openai
+from openai import OpenAI
 import pinecone
 import streamlit as st
 import os
@@ -25,11 +25,13 @@ PINECONE_API_KEY=os.environ['PINECONE_API_KEY']
 PINECONE_API_ENV=os.environ['PINECONE_API_ENV']
 PINECONE_INDEX_NAME=os.environ['PINECONE_INDEX_NAME']
 
+client=OpenAI(api_key=os.environ['OPENAI_API_KEY'])
+
 def augmented_content(inp):
     # Create the embedding using OpenAI keys
     # Do similarity search using Pinecone
     # Return the top 5 results
-    embedding=openai.Embedding.create(model="text-embedding-ada-002", input=inp)['data'][0]['embedding']
+    embedding=client.embeddings.create(model="text-embedding-ada-002", input=inp).data[0].embedding
     pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_API_ENV)
     index = pinecone.Index(PINECONE_INDEX_NAME)
     results=index.query(embedding,top_k=3,include_metadata=True)
@@ -73,12 +75,16 @@ The user's question was: {prompt}
                       for m in st.session_state.messages]
         messageList.append({"role": "user", "content": prompt_guidance})
         
-        for response in openai.ChatCompletion.create(
+        for response in client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=messageList, stream=True):
-            full_response += response.choices[0].delta.get("content", "")
+            delta_response=response.choices[0].delta
+            print(f"Delta response: {delta_response}")
+            if delta_response.content:
+                full_response += delta_response.content
             message_placeholder.markdown(full_response + "▌")
         message_placeholder.markdown(full_response)
+
     with st.sidebar.expander("Retreival context provided to GPT-3"):
         st.write(f"{retreived_content}")
     st.session_state.messages.append({"role": "assistant", "content": full_response})
